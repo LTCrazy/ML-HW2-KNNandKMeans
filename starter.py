@@ -1,5 +1,6 @@
 import math
 from collections import Counter
+import numpy as np
 
 # returns Euclidean distance between vectors a dn b
 def euclidean(a, b):
@@ -56,9 +57,52 @@ def knn(train, query, metric):
 # metric is a string specifying either "euclidean" or "cosim".  
 # All hyper-parameters should be hard-coded in the algorithm.
 def kmeans(train, query, metric):
-    return (labels)
+    k = 2
+    tol = 0.001
+    max_iter = 300
+    centroids = []
+    classification = {}
+    check = True
+    # pick centroid
+    for i in range(k):
+        centroids.append(train[i])
+        classification[i] = np.array([])
+    while check:
+        # iterate through train points
+        for pt in train:
+            dist = []
+            for i in range(len(centroids)):
+                if metric == 'euclidean':
+                    dist.append(euclidean(pt, centroids[i]))
+                else:
+                    dist.append(cosim(pt, centroids[i]))
+            classification[dist.index(min(dist))] = np.vstack((classification[dist.index(min(dist))], pt))
+        # recalculate centroids and break condition
+        new_centroids = []
+        for i in range(len(centroids)):
+            new_centroid = np.average(classification[i], axis=1)
+            new_centroids.append(new_centroid)
+            check = abs((np.array([centroids[i]]) - new_centroid)/np.array([centroids[i]])*100.0) > tol
+            centroids[i] = new_centroids[i]
+
+    # predict
+    labels = []
+    for pt in query:
+        min_dist = float('inf')
+        label = -1
+        for i in range(len(centroids)):
+            if metric == 'euclidean':
+                dist.append(euclidean(query, centroids[i]))
+            else:
+                dist.append(cosim(query, centroids[i]))
+            if dist < min_dist:
+                min_dist = dist
+                label = i
+        labels.append(label)
+    return labels
 
 
+'Output 200x2x784 matrix'
 def read_data(file_name):
     data_set = []
     with open(file_name, 'rt') as f:
