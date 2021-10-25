@@ -4,6 +4,10 @@ import numpy as np
 
 # returns Euclidean distance between vectors a dn b
 def euclidean(a, b):
+    # print('a:', a)
+    # print('b:', b)
+    a = list(map(int, a))
+    b = list(map(int, b))
     summ = sum((u - v) ** 2 for u, v in zip(a, b))
     dist = math.sqrt(summ)
     return dist
@@ -36,10 +40,11 @@ def unit_test(a, b):
 def knn(train, query, metric):
     k = 2   # hyper-parameter, could tone
     labels = []
-    for query_pt in query:
+    for query_dat in query:
+        query_pt = query_dat[1]
         tuple_lst = []  # the list of tuple (dist, label)
         for train_dat in train:
-            train_pt = train_dat[1:-1]
+            train_pt = train_dat[1]
             # print('train_pt:', train_pt, ', query_pt:', query_pt)
             dist = euclidean(train_pt, query_pt) if metric == 'euclidean' \
                 else cosim(train_pt, query_pt)
@@ -57,16 +62,17 @@ def knn(train, query, metric):
 # metric is a string specifying either "euclidean" or "cosim".  
 # All hyper-parameters should be hard-coded in the algorithm.
 def kmeans(train, query, metric):
-    k = 2
+    k = 10
     tol = 0.001
     max_iter = 300
-    centroids = []
+    centroids = np.array([])
     classification = {}
     check = True
     # pick centroid
+    centroids = np.empty([0, len(train[0])])
     for i in range(k):
-        centroids.append(train[i])
-        classification[i] = np.array([])
+        centroids = np.vstack((centroids, list(map(int, train[i]))))
+        classification[i] = np.empty([0, len(train[0])])
     while check:
         # iterate through train points
         for pt in train:
@@ -76,14 +82,22 @@ def kmeans(train, query, metric):
                     dist.append(euclidean(pt, centroids[i]))
                 else:
                     dist.append(cosim(pt, centroids[i]))
-            classification[dist.index(min(dist))] = np.vstack((classification[dist.index(min(dist))], pt))
+            # print('classification:', classification)
+            classification[dist.index(min(dist))] = np.vstack(
+                    (classification[dist.index(min(dist))], pt))
+
         # recalculate centroids and break condition
-        new_centroids = []
-        for i in range(len(centroids)):
-            new_centroid = np.average(classification[i], axis=1)
-            new_centroids.append(new_centroid)
-            check = abs((np.array([centroids[i]]) - new_centroid)/np.array([centroids[i]])*100.0) > tol
+        new_centroids = np.empty([0, len(train[0])])
+        for i in range(k):
+            new_centroid = np.average(cla2ssification[i].astype(np.int), axis=0)
+            # print('new centroid:', new_centroid.shape)
+            # print(classification[i].astype(np.int).shape)
+            # break
+            new_centroids = np.append(new_centroids, new_centroid)
+            check = sum(abs((centroids[i] - new_centroid)/(centroids[i]+0.001)*100.0)) > tol
             centroids[i] = new_centroids[i]
+            # empty current assignments
+            classification[i] = np.empty([0, len(train[0])])
 
     # predict
     labels = []
@@ -92,9 +106,9 @@ def kmeans(train, query, metric):
         label = -1
         for i in range(len(centroids)):
             if metric == 'euclidean':
-                dist.append(euclidean(query, centroids[i]))
+                dist = euclidean(pt, centroids[i])
             else:
-                dist.append(cosim(query, centroids[i]))
+                dist = cosim(pt, centroids[i])
             if dist < min_dist:
                 min_dist = dist
                 label = i
@@ -135,8 +149,30 @@ def show(file_name, mode):
 
 
 def main():
-    show('valid.csv', 'pixels')
-
+    # show('valid.csv', 'pixels')
+    dat_train = read_data('train.csv')
+    dat_val = read_data('valid.csv')
+    dat_test = read_data('test.csv')
+    '''Output 200x2x784 matrix'''
+    # ------------- test parameters -------------
+    function = 'kmeans'
+    metric = 'euclidean'
+    # -------------------------------------------
+    if function == 'knn':
+        pred = knn(dat_train, dat_test, metric)
+    elif function == 'kmeans':
+        train = [x[1] for x in dat_train]
+        valid = [x[1] for x in dat_val]
+        test = [x[1] for x in dat_test]
+        pred = kmeans(train, test, metric)
+    print('predictions:', pred)
+    print('labels:', [x[0] for x in dat_test])
+    # Calculate accuracy
+    correct = 0
+    for i in range(len(dat_test)):
+        correct = correct + (str(pred[i]) == dat_test[i][0])
+    acc = correct / len(dat_test)
+    print('accuracy:', acc)
 
 if __name__ == "__main__":
     main()
