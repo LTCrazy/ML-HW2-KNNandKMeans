@@ -1,7 +1,7 @@
 import math
 from collections import Counter
 import numpy as np
-
+from sklearn.decomposition import PCA
 # returns Euclidean distance between vectors a dn b
 def euclidean(a, b):
     # print('a:', a)
@@ -35,7 +35,7 @@ def unit_test(a, b):
 
 
 # returns a list of labels for the query dataset based upon labeled observations in the train dataset.
-# metric is a string specifying either "euclidean" or "cosim".  
+# metric is a string specifying either "euclidean" or "cosim".
 # All hyper-parameters should be hard-coded in the algorithm.
 def knn(train, query, metric):
     k = 2   # hyper-parameter, could tone
@@ -59,7 +59,7 @@ def knn(train, query, metric):
 
 # returns a list of labels for the query dataset based upon observations in the train dataset.
 # labels should be ignored in the training set
-# metric is a string specifying either "euclidean" or "cosim".  
+# metric is a string specifying either "euclidean" or "cosim".
 # All hyper-parameters should be hard-coded in the algorithm.
 def kmeans(train, query, metric):
     k = 10
@@ -148,6 +148,24 @@ def show(file_name, mode):
         print(' ')
 
 
+def dimensionality_reduction(filename):
+    train_data = read_data(filename)
+    train_2d = []
+    train_labels = []
+    for row in range(len(train_data)):
+        X_train = train_data[row][1]
+        X_label = train_data[row][0]
+        train_2d.append(X_train)
+        train_labels.append(X_label)
+
+    pca_trans_data = PCA(n_components=100, svd_solver='randomized', whiten=True).fit(train_2d)
+    X_train_pca = pca_trans_data.transform(train_2d)
+    X_train = X_train_pca.astype(str).tolist()
+    train = [list(e) for e in zip(train_labels, X_train)]
+    pca_variance = pca_trans_data.explained_variance_ratio_.sum()
+
+    return train
+
 def main():
     # show('valid.csv', 'pixels')
     dat_train = read_data('train.csv')
@@ -173,6 +191,7 @@ def main():
         correct = correct + (str(pred[i]) == dat_test[i][0])
     acc = correct / len(dat_test)
     print('accuracy:', acc)
-
+    #------dimensionality reductiomn function-------
+    #train = preprocessing('train.csv')
 if __name__ == "__main__":
     main()
