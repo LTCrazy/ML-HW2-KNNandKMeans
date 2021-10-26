@@ -199,6 +199,11 @@ def main():
         valid = [x[1] for x in dat_val]
         test = [x[1] for x in dat_test]
         pred = kmeans(test, valid, metric)
+    elif function =='softkmeans':
+        train1 = [x[1] for x in dat_train]
+        valid1 = [x[1] for x in dat_val]
+        test1 = [x[1] for x in dat_test]
+        pred=soft_kmeans(test1)
     # print('predictions:', pred)
     # print('labels:', [x[0] for x in dat_test])
     # Calculate accuracy
@@ -233,7 +238,7 @@ def cluster_fn(centers, x, beta):
     return R
 
 
-def soft_k_means(x, k=3, max_iters=20, beta=1.):
+def soft_kmeans(x, k=3, max_iters=20, beta=1.):
     #Initializing centers
     #N, D = x.shape
     N=len(x)
@@ -270,3 +275,4 @@ def soft_k_means(x, k=3, max_iters=20, beta=1.):
         if np.abs(cost - prev_cost) < 1e-5:
             break
         prev_cost = cost
+    return r
