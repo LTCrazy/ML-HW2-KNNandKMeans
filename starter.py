@@ -1,6 +1,7 @@
 import math
 from collections import Counter
 import numpy as np
+from sklearn.decomposition import PCA
 
 k = 0
 
@@ -181,13 +182,13 @@ def dimensionality_reduction(filename):
 
 def main():
     # show('valid.csv', 'pixels')
-    dat_train = read_data('train.csv')
-    dat_val = read_data('valid.csv')
-    dat_test = read_data('test.csv')
+    dat_train = dimensionality_reduction('train.csv')
+    dat_val = dimensionality_reduction('valid.csv')
+    dat_test = dimensionality_reduction('test.csv')
     '''Output 200x2x784 matrix'''
     # ------------- test parameters -------------
     function = 'kmeans'
-    metric = 'cosim'
+    metric = 'eucliean'
     # k = 10
     # -------------------------------------------
     if function == 'knn':
@@ -196,7 +197,7 @@ def main():
         train = [x[1] for x in dat_train]
         valid = [x[1] for x in dat_val]
         test = [x[1] for x in dat_test]
-        pred = kmeans(train, valid, metric)
+        pred = kmeans(test, valid, metric)
     # print('predictions:', pred)
     # print('labels:', [x[0] for x in dat_test])
     # Calculate accuracy
