@@ -2,6 +2,9 @@ import math
 from collections import Counter
 import numpy as np
 from sklearn.decomposition import PCA
+import copy
+import matplotlib.pyplot as plt
+
 
 # k = 0
 
@@ -12,7 +15,7 @@ def euclidean(a, b):
     # a = list(map(int, a))
     # b = list(map(int, b))
     summ = sum((u - v) ** 2 for u, v in zip(a, b))
-    dist = math.sqrt(summ)
+    dist = math.sqrt(float(summ))
     return dist
 
 
@@ -25,7 +28,7 @@ def cosim(a, b):
     dot = sum(u * v for u, v in zip(a, b))
     mag_a = math.sqrt(sum(x ** 2 for x in a))
     mag_b = math.sqrt(sum(x ** 2 for x in b))
-    dist = dot / (mag_a * mag_b)
+    dist = float(dot) / (mag_a * mag_b)
     return dist
 
 
@@ -71,52 +74,78 @@ def knn(train, query, metric):
 # metric is a string specifying either "euclidean" or "cosim".
 # All hyper-parameters should be hard-coded in the algorithm.
 def kmeans(train, query, metric):
-    k = 10
+    k = 8
     tol = 0.001
-    # max_iter = 300
+    max_iter = 5
+    # train_dat = copy.copy(train)
+    # query_dat = copy.copy(query)
+    # train = [x[1] for x in train]
+    # query = [x[1] for x in query]
     centroids = np.array([])
     classification = {}
     check = True
     # pick centroid
     centroids = np.empty([0, len(train[0])])
     for i in range(k):
-        centroids = np.vstack((centroids, list(map(int, train[-i]))))
+        centroids = np.vstack((centroids, list(map(float, train[-i]))))
         classification[i] = np.empty([0, len(train[0])])
+    count = 0
     while check:
+        # empty current assignments
+        for i in range(k):
+            classification[i] = np.empty([0, len(train[0])])
         # iterate through train points
         for pt in train:
-            dist = []
+            min_dist = float('inf')
             for i in range(k):
                 if metric == 'euclidean':
-                    dist.append(euclidean(pt, centroids[i]))
+                    dist = euclidean(pt, centroids[i])
                 else:
-                    dist.append(cosim(pt, centroids[i]))
-            classification[dist.index(min(dist))] = np.vstack(
-                (classification[dist.index(min(dist))], pt))
+                    dist = cosim(pt, centroids[i])
+                if dist < min_dist:
+                    min_dist = dist
+                    classification[i] = np.vstack((classification[i], pt))
+            # classification[dist.index(min(dist))] = np.vstack(
+            #     (classification[dist.index(min(dist))], pt))
         # for k, val in classification.items():
         #     print('classification', k, ' values:', len(val))
         # recalculate centroids and break condition
         # new_centroids = np.empty([0, len(train[0])])
         check = False
         for i in range(k):
-            new_centroid = np.average(classification[i], axis=0)
-            print('Nan:', new_centroid) if np.isnan(new_centroid.any()) else ''
+            new_centroid = np.mean(classification[i], axis=0)
+            print('Nan:', new_centroid) if np.isnan(new_centroid[0]) else ''
             # print('new centroid:', new_centroid.shape)
             # print(classification[i].astype(np.int).shape)
             # convergence test
             # new_centroids = np.append(new_centroids, new_centroid)
-            if np.sum((abs(centroids[i] - new_centroid) / (centroids[i] + 0.001))) > tol:
+            print('centriods:', centroids[i])
+            # print('new_centriod:', new_centroid)
+            # try:
+            #     tol_score = np.sum((abs(centroids[i] - new_centroid) / (centroids[i])))
+            # except RuntimeWarning:
+            #     print('zero division')
+            tol_score = np.sum((abs(centroids[i] - new_centroid) / (centroids[i] + 0.001)))
+            if tol_score > tol:
                 check = True
             # ---- only check for all convergence
             centroids[i] = new_centroid
-            # empty current assignments
-            classification[i] = np.empty([0, len(train[0])])
+        count += 1
+        print('done iteration', count)
+        if count >= max_iter:
+            check = False
 
     # predict
-    labels = []
+    # -- plot centroids
+    fig, axs = plt.subplots(10)
+    for i in range(k):
+        # print('cluster', i, ':', centroids[i])
+        axs[i].imshow(centroids[i].reshape(28, 28))
+    # plt.show()
+    clusters = []
     for pt in query:
         min_dist = float('inf')
-        label = -1
+        cluster = -1
         for i in range(k):
             if metric == 'euclidean':
                 dist = euclidean(pt, centroids[i])
@@ -125,9 +154,9 @@ def kmeans(train, query, metric):
             # print('dist:', dist)
             if dist < min_dist:
                 min_dist = dist
-                label = i
-        labels.append(label)
-    return labels
+                cluster = i
+        clusters.append(cluster)
+    return clusters
 
 
 'Output 200x2x784 matrix'
@@ -172,7 +201,7 @@ def dimensionality_reduction(filename):
         train_2d.append(X_train)
         train_labels.append(X_label)
 
-    pca_trans_data = PCA(n_components=100, svd_solver='randomized', whiten=True).fit(train_2d)
+    pca_trans_data = PCA(n_components=50, svd_solver='randomized', whiten=True).fit(train_2d)
     X_train_pca = pca_trans_data.transform(train_2d)
     X_train = list(np.round(X_train_pca, 2))
     train = [e for e in zip(train_labels, X_train)]
@@ -183,35 +212,46 @@ def dimensionality_reduction(filename):
 
 def main():
     # show('valid.csv', 'pixels')
-    dat_train = dimensionality_reduction('train.csv')
-    dat_val = dimensionality_reduction('valid.csv')
-    dat_test = dimensionality_reduction('test.csv')
-    '''Output 200x2x784 matrix'''
     # ------------- test parameters -------------
-    function = 'kmeans'
-    metric = 'eucliean'
+    function = 'softkmeans'
+    metric = 'euclidean'
     # k = 10
+    dimension_red = True
+    mannual_label = False    # visiualize the centroids and mannually assign labels
     # -------------------------------------------
+    if dimension_red:
+        dat_train = dimensionality_reduction('train.csv')
+        dat_val = dimensionality_reduction('valid.csv')
+        dat_test = dimensionality_reduction('test.csv')
+    else:
+        dat_train = read_data('train.csv')
+        dat_val = read_data('valid.csv')
+        dat_test = read_data('test.csv')
+    '''Output 200x2x784 matrix'''
     if function == 'knn':
-        pred = knn(dat_train, dat_test, metric)
+        pred = knn(dat_train, dat_val, metric)
     elif function == 'kmeans':
-        train = [x[1] for x in dat_train]
-        valid = [x[1] for x in dat_val]
-        test = [x[1] for x in dat_test]
-        pred = kmeans(test, valid, metric)
+        train = [list(map(int, x[1])) for x in dat_train]
+        valid = [list(map(int, x[1])) for x in dat_val]
+        test = [list(map(int, x[1])) for x in dat_test]
+        pred = kmeans(train, valid, metric)
     elif function =='softkmeans':
         train1 = [x[1] for x in dat_train]
         valid1 = [x[1] for x in dat_val]
         test1 = [x[1] for x in dat_test]
         pred=soft_kmeans(test1)
+        print(pred[1:10])
     # print('predictions:', pred)
     # print('labels:', [x[0] for x in dat_test])
-    # Calculate accuracy
-    # take mode(label) - confusion matrix
-    # plot centroids
     correct = 0
+    if mannual_label:
+        clusters = [8 ,8, 9, 1, 0, 0, 1, 2]
+        labels = list(map(clusters.__getitem__, pred))
+        print('labels', len(labels))
+    else:
+        labels = pred
     for i in range(len(dat_test)):
-        correct = correct + (str(pred[i]) == dat_test[i][0])
+        correct = correct + (str(labels[i]) == str(dat_val[i][0]))
     acc = float(correct) / len(dat_test)
     print('accuracy:', acc)
 
@@ -227,8 +267,8 @@ def cluster_fn(centers, x, beta):
     N = len(x)
     _ = len(x[0])
     K, D = centers.shape
-    #K = len(centers)
-    #D = len(centers[0])
+    # K = len(centers)
+    # D = len(centers[0])
     R = np.zeros((N, K))
 
     for n in range(N):
@@ -239,10 +279,10 @@ def cluster_fn(centers, x, beta):
 
 
 def soft_kmeans(x, k=3, max_iters=20, beta=1.):
-    #Initializing centers
-    #N, D = x.shape
-    N=len(x)
-    D=len(x[0])
+    # Initializing centers
+    # N, D = x.shape
+    N = len(x)
+    D = len(x[0])
     centers = np.zeros((k, D))
     arr = []
     for i in range(k):
@@ -254,10 +294,13 @@ def soft_kmeans(x, k=3, max_iters=20, beta=1.):
 
     prev_cost = 0
 
+    count = 0
     for _ in range(max_iters):
+        count += 1
+        print('iteration', count)
         r = cluster_fn(centers, x, beta)
 
-        #Updating centers
+        # Updating centers
         # N, D = x.shape
         N = len(x)
         D = len(x[0])
@@ -265,13 +308,13 @@ def soft_kmeans(x, k=3, max_iters=20, beta=1.):
         for i in range(k):
             centers[i] = r[:, i].dot(x) / r[:, i].sum()
 
-        #Calculating cost
+        # Calculating cost
         cost = 0
         for i in range(k):
             norm = np.linalg.norm(x - centers[i], 2)
             cost += (norm * np.expand_dims(r[:, i], axis=1)).sum()
 
-        #Break condition
+        # Break condition
         if np.abs(cost - prev_cost) < 1e-5:
             break
         prev_cost = cost
