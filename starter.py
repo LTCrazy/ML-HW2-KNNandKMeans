@@ -218,8 +218,12 @@ if __name__ == "__main__":
 ###Soft k means
 
 def cluster_fn(centers, x, beta):
-    N, _ = x.shape
+    # N, D = x.shape
+    N = len(x)
+    _ = len(x[0])
     K, D = centers.shape
+    #K = len(centers)
+    #D = len(centers[0])
     R = np.zeros((N, K))
 
     for n in range(N):
@@ -231,11 +235,13 @@ def cluster_fn(centers, x, beta):
 
 def soft_k_means(x, k=3, max_iters=20, beta=1.):
     #Initializing centers
-    N, D = x.shape
+    #N, D = x.shape
+    N=len(x)
+    D=len(x[0])
     centers = np.zeros((k, D))
     arr = []
     for i in range(k):
-        idx = np.random.choice(N)
+        j = np.random.choice(N)
         while j in arr:
             j = np.random.choice(N)
         arr.append(j)
@@ -247,7 +253,9 @@ def soft_k_means(x, k=3, max_iters=20, beta=1.):
         r = cluster_fn(centers, x, beta)
 
         #Updating centers
-        N, D = x.shape
+        # N, D = x.shape
+        N = len(x)
+        D = len(x[0])
         centers = np.zeros((k, D))
         for i in range(k):
             centers[i] = r[:, i].dot(x) / r[:, i].sum()
