@@ -3,14 +3,14 @@ from collections import Counter
 import numpy as np
 from sklearn.decomposition import PCA
 
-k = 0
+# k = 0
 
 # returns Euclidean distance between vectors a dn b
 def euclidean(a, b):
     # print('a:', a)
     # print('b:', b)
-    a = list(map(int, a))
-    b = list(map(int, b))
+    # a = list(map(int, a))
+    # b = list(map(int, b))
     summ = sum((u - v) ** 2 for u, v in zip(a, b))
     dist = math.sqrt(summ)
     return dist
@@ -20,8 +20,8 @@ def euclidean(a, b):
 def cosim(a, b):
     # print('a:', a)
     # print('b:', b)
-    a = list(map(int, a))
-    b = list(map(int, b))
+    # a = list(map(int, a))
+    # b = list(map(int, b))
     dot = sum(u * v for u, v in zip(a, b))
     mag_a = math.sqrt(sum(x ** 2 for x in a))
     mag_b = math.sqrt(sum(x ** 2 for x in b))
@@ -99,7 +99,7 @@ def kmeans(train, query, metric):
         # new_centroids = np.empty([0, len(train[0])])
         check = False
         for i in range(k):
-            new_centroid = np.average(classification[i].astype(np.int), axis=0)
+            new_centroid = np.average(classification[i], axis=0)
             print('Nan:', new_centroid) if np.isnan(new_centroid.any()) else ''
             # print('new centroid:', new_centroid.shape)
             # print(classification[i].astype(np.int).shape)
@@ -174,7 +174,7 @@ def dimensionality_reduction(filename):
 
     pca_trans_data = PCA(n_components=100, svd_solver='randomized', whiten=True).fit(train_2d)
     X_train_pca = pca_trans_data.transform(train_2d)
-    X_train = X_train_pca.astype(str).tolist()
+    X_train = X_train_pca.tolist()
     train = [list(e) for e in zip(train_labels, X_train)]
     pca_variance = pca_trans_data.explained_variance_ratio_.sum()
     return train
