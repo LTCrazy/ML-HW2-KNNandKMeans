@@ -1,7 +1,9 @@
 import math
 from collections import Counter
 import numpy as np
-from sklearn.decomposition import PCA
+
+k = 0
+
 # returns Euclidean distance between vectors a dn b
 def euclidean(a, b):
     # print('a:', a)
@@ -15,6 +17,10 @@ def euclidean(a, b):
 
 # returns Cosine Similarity between vectors a dn b
 def cosim(a, b):
+    # print('a:', a)
+    # print('b:', b)
+    a = list(map(int, a))
+    b = list(map(int, b))
     dot = sum(u * v for u, v in zip(a, b))
     mag_a = math.sqrt(sum(x ** 2 for x in a))
     mag_b = math.sqrt(sum(x ** 2 for x in b))
@@ -23,6 +29,8 @@ def cosim(a, b):
 
 
 'test 2 dist function'
+
+
 def unit_test(a, b):
     euc = euclidean(a, b)
     cos = cosim(a, b)
@@ -38,7 +46,7 @@ def unit_test(a, b):
 # metric is a string specifying either "euclidean" or "cosim".
 # All hyper-parameters should be hard-coded in the algorithm.
 def knn(train, query, metric):
-    k = 2   # hyper-parameter, could tone
+    k = 2  # hyper-parameter, could tone
     labels = []
     for query_dat in query:
         query_pt = query_dat[1]
@@ -64,38 +72,42 @@ def knn(train, query, metric):
 def kmeans(train, query, metric):
     k = 10
     tol = 0.001
-    max_iter = 300
+    # max_iter = 300
     centroids = np.array([])
     classification = {}
     check = True
     # pick centroid
     centroids = np.empty([0, len(train[0])])
     for i in range(k):
-        centroids = np.vstack((centroids, list(map(int, train[i]))))
+        centroids = np.vstack((centroids, list(map(int, train[-i]))))
         classification[i] = np.empty([0, len(train[0])])
     while check:
         # iterate through train points
         for pt in train:
             dist = []
-            for i in range(len(centroids)):
+            for i in range(k):
                 if metric == 'euclidean':
                     dist.append(euclidean(pt, centroids[i]))
                 else:
                     dist.append(cosim(pt, centroids[i]))
-            # print('classification:', classification)
             classification[dist.index(min(dist))] = np.vstack(
-                    (classification[dist.index(min(dist))], pt))
-
+                (classification[dist.index(min(dist))], pt))
+        # for k, val in classification.items():
+        #     print('classification', k, ' values:', len(val))
         # recalculate centroids and break condition
-        new_centroids = np.empty([0, len(train[0])])
+        # new_centroids = np.empty([0, len(train[0])])
+        check = False
         for i in range(k):
-            new_centroid = np.average(cla2ssification[i].astype(np.int), axis=0)
+            new_centroid = np.average(classification[i].astype(np.int), axis=0)
+            print('Nan:', new_centroid) if np.isnan(new_centroid.any()) else ''
             # print('new centroid:', new_centroid.shape)
             # print(classification[i].astype(np.int).shape)
-            # break
-            new_centroids = np.append(new_centroids, new_centroid)
-            check = sum(abs((centroids[i] - new_centroid)/(centroids[i]+0.001)*100.0)) > tol
-            centroids[i] = new_centroids[i]
+            # convergence test
+            # new_centroids = np.append(new_centroids, new_centroid)
+            if np.sum((abs(centroids[i] - new_centroid) / (centroids[i] + 0.001))) > tol:
+                check = True
+            # ---- only check for all convergence
+            centroids[i] = new_centroid
             # empty current assignments
             classification[i] = np.empty([0, len(train[0])])
 
@@ -104,11 +116,12 @@ def kmeans(train, query, metric):
     for pt in query:
         min_dist = float('inf')
         label = -1
-        for i in range(len(centroids)):
+        for i in range(k):
             if metric == 'euclidean':
                 dist = euclidean(pt, centroids[i])
             else:
                 dist = cosim(pt, centroids[i])
+            # print('dist:', dist)
             if dist < min_dist:
                 min_dist = dist
                 label = i
@@ -163,8 +176,8 @@ def dimensionality_reduction(filename):
     X_train = X_train_pca.astype(str).tolist()
     train = [list(e) for e in zip(train_labels, X_train)]
     pca_variance = pca_trans_data.explained_variance_ratio_.sum()
-
     return train
+
 
 def main():
     # show('valid.csv', 'pixels')
@@ -174,7 +187,8 @@ def main():
     '''Output 200x2x784 matrix'''
     # ------------- test parameters -------------
     function = 'kmeans'
-    metric = 'euclidean'
+    metric = 'cosim'
+    # k = 10
     # -------------------------------------------
     if function == 'knn':
         pred = knn(dat_train, dat_test, metric)
@@ -182,17 +196,19 @@ def main():
         train = [x[1] for x in dat_train]
         valid = [x[1] for x in dat_val]
         test = [x[1] for x in dat_test]
-        pred = kmeans(train, test, metric)
-    print('predictions:', pred)
-    print('labels:', [x[0] for x in dat_test])
+        pred = kmeans(train, valid, metric)
+    # print('predictions:', pred)
+    # print('labels:', [x[0] for x in dat_test])
     # Calculate accuracy
+    # take mode(label) - confusion matrix
+    # plot centroids
     correct = 0
     for i in range(len(dat_test)):
         correct = correct + (str(pred[i]) == dat_test[i][0])
-    acc = correct / len(dat_test)
+    acc = float(correct) / len(dat_test)
     print('accuracy:', acc)
-    #------dimensionality reductiomn function-------
-    #train = preprocessing('train.csv')
+
+
 if __name__ == "__main__":
     main()
 
