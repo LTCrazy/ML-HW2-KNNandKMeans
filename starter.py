@@ -195,3 +195,52 @@ def main():
     #train = preprocessing('train.csv')
 if __name__ == "__main__":
     main()
+
+
+###Soft k means
+
+def cluster_fn(centers, x, beta):
+    N, _ = x.shape
+    K, D = centers.shape
+    R = np.zeros((N, K))
+
+    for n in range(N):
+        R[n] = np.exp(-beta * np.linalg.norm(centers - x[n], 2, axis=1))
+    R /= R.sum(axis=1, keepdims=True)
+
+    return R
+
+
+def soft_k_means(x, k=3, max_iters=20, beta=1.):
+    #Initializing centers
+    N, D = x.shape
+    centers = np.zeros((k, D))
+    arr = []
+    for i in range(k):
+        idx = np.random.choice(N)
+        while j in arr:
+            j = np.random.choice(N)
+        arr.append(j)
+        centers[i] = x[j]
+
+    prev_cost = 0
+
+    for _ in range(max_iters):
+        r = cluster_fn(centers, x, beta)
+
+        #Updating centers
+        N, D = x.shape
+        centers = np.zeros((k, D))
+        for i in range(k):
+            centers[i] = r[:, i].dot(x) / r[:, i].sum()
+
+        #Calculating cost
+        cost = 0
+        for i in range(k):
+            norm = np.linalg.norm(x - centers[i], 2)
+            cost += (norm * np.expand_dims(r[:, i], axis=1)).sum()
+
+        #Break condition
+        if np.abs(cost - prev_cost) < 1e-5:
+            break
+        prev_cost = cost
