@@ -174,9 +174,10 @@ def dimensionality_reduction(filename):
 
     pca_trans_data = PCA(n_components=100, svd_solver='randomized', whiten=True).fit(train_2d)
     X_train_pca = pca_trans_data.transform(train_2d)
-    X_train = X_train_pca.tolist()
-    train = [list(e) for e in zip(train_labels, X_train)]
+    X_train = list(np.round(X_train_pca, 2))
+    train = [e for e in zip(train_labels, X_train)]
     pca_variance = pca_trans_data.explained_variance_ratio_.sum()
+
     return train
 
 
