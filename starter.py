@@ -54,10 +54,10 @@ def knn(train, query, metric):
     k = 2  # hyper-parameter, could tone
     labels = []
     for query_dat in query:
-        query_pt = query_dat[1]
+        query_pt = list(map(float,query_dat[1]))
         tuple_lst = []  # the list of tuple (dist, label)
         for train_dat in train:
-            train_pt = train_dat[1]
+            train_pt = list(map(float,train_dat[1]))
             # print('train_pt:', train_pt, ', query_pt:', query_pt)
             dist = euclidean(train_pt, query_pt) if metric == 'euclidean' \
                 else cosim(train_pt, query_pt)
