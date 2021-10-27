@@ -214,10 +214,10 @@ def dimensionality_reduction(filename):
 def main():
     # show('valid.csv', 'pixels')
     # ------------- test parameters -------------
-    function = 'softkmeans'
+    function = 'knn'
     metric = 'euclidean'
     # k = 10
-    dimension_red = True
+    dimension_red = False
     mannual_label = False    # visiualize the centroids and mannually assign labels
     # -------------------------------------------
     if dimension_red:
