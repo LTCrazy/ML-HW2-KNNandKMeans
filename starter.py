@@ -231,13 +231,13 @@ def main():
     '''Output 200x2x784 matrix'''
     if function == 'knn':
         pred = knn(dat_train, dat_val, metric)
-        actual = test_labels
+        #actual = test_labels
     elif function == 'kmeans':
         train = [list(map(int, x[1])) for x in dat_train]
         valid = [list(map(int, x[1])) for x in dat_val]
         test = [list(map(int, x[1])) for x in dat_test]
         pred = kmeans(train, valid, metric)
-        actual = test_labels
+        #actual = test_labels
     # print('predictions:', pred)
     # print('labels:', [x[0] for x in dat_test])
     correct = 0
@@ -251,7 +251,7 @@ def main():
         correct = correct + (str(labels[i]) == str(dat_val[i][0]))
     acc = float(correct) / len(dat_test)
     print('accuracy:', acc)
-    print(confusion_matrix(actual, pred))
+   # print(confusion_matrix(actual, pred))
     if function =='softkmeans':
         train1 = [x[1] for x in dat_train]
         valid1 = [x[1] for x in dat_val]
