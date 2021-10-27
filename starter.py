@@ -2,6 +2,7 @@ import math
 from collections import Counter
 import numpy as np
 from sklearn.decomposition import PCA
+from sklearn.metrics import confusion_matrix
 import copy
 import matplotlib.pyplot as plt
 
@@ -207,7 +208,7 @@ def dimensionality_reduction(filename):
     train = [e for e in zip(train_labels, X_train)]
     pca_variance = pca_trans_data.explained_variance_ratio_.sum()
 
-    return train
+    return train, train_labels
 
 
 def main():
@@ -220,9 +221,9 @@ def main():
     mannual_label = False    # visiualize the centroids and mannually assign labels
     # -------------------------------------------
     if dimension_red:
-        dat_train = dimensionality_reduction('train.csv')
-        dat_val = dimensionality_reduction('valid.csv')
-        dat_test = dimensionality_reduction('test.csv')
+        dat_train,train_labels = dimensionality_reduction('train.csv')
+        dat_val,val_labels  = dimensionality_reduction('valid.csv')
+        dat_test,test_labels = dimensionality_reduction('test.csv')
     else:
         dat_train = read_data('train.csv')
         dat_val = read_data('valid.csv')
@@ -230,11 +231,13 @@ def main():
     '''Output 200x2x784 matrix'''
     if function == 'knn':
         pred = knn(dat_train, dat_val, metric)
+        actual = test_labels
     elif function == 'kmeans':
         train = [list(map(int, x[1])) for x in dat_train]
         valid = [list(map(int, x[1])) for x in dat_val]
         test = [list(map(int, x[1])) for x in dat_test]
         pred = kmeans(train, valid, metric)
+        actual = test_labels
     # print('predictions:', pred)
     # print('labels:', [x[0] for x in dat_test])
     correct = 0
@@ -248,6 +251,7 @@ def main():
         correct = correct + (str(labels[i]) == str(dat_val[i][0]))
     acc = float(correct) / len(dat_test)
     print('accuracy:', acc)
+    print(confusion_matrix(actual, pred))
     if function =='softkmeans':
         train1 = [x[1] for x in dat_train]
         valid1 = [x[1] for x in dat_val]
