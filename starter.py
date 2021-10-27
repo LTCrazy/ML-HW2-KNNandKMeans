@@ -235,12 +235,6 @@ def main():
         valid = [list(map(int, x[1])) for x in dat_val]
         test = [list(map(int, x[1])) for x in dat_test]
         pred = kmeans(train, valid, metric)
-    elif function =='softkmeans':
-        train1 = [x[1] for x in dat_train]
-        valid1 = [x[1] for x in dat_val]
-        test1 = [x[1] for x in dat_test]
-        pred=soft_kmeans(test1)
-        print(pred[1:10])
     # print('predictions:', pred)
     # print('labels:', [x[0] for x in dat_test])
     correct = 0
@@ -254,6 +248,13 @@ def main():
         correct = correct + (str(labels[i]) == str(dat_val[i][0]))
     acc = float(correct) / len(dat_test)
     print('accuracy:', acc)
+    if function =='softkmeans':
+        train1 = [x[1] for x in dat_train]
+        valid1 = [x[1] for x in dat_val]
+        test1 = [x[1] for x in dat_test]
+        pred=soft_kmeans(test1)
+        print("Data point highest probabilities (sample set only):")
+        print(pred[1:30])
 
 
 if __name__ == "__main__":
