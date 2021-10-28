@@ -229,6 +229,10 @@ def main():
         dat_val = read_data('valid.csv')
         dat_test = read_data('test.csv')
     '''Output 200x2x784 matrix'''
+    train_labels = []
+    for row in range(len(dat_test)):
+        X_label = dat_test[row][0]
+        train_labels.append(X_label)    
     if function == 'knn':
         pred = knn(dat_train, dat_val, metric)
         #actual = test_labels
@@ -251,6 +255,7 @@ def main():
         correct = correct + (str(labels[i]) == str(dat_val[i][0]))
     acc = float(correct) / len(dat_test)
     print('accuracy:', acc)
+    print(confusion_matrix(train_labels, pred, labels=["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]))
    # print(confusion_matrix(actual, pred))
     if function =='softkmeans':
         train1 = [x[1] for x in dat_train]
