@@ -77,7 +77,7 @@ def knn(train, query, metric):
 def kmeans(train, query, metric):
     k = 8
     tol = 0.001
-    max_iter = 5
+    max_iter = 20
     # train_dat = copy.copy(train)
     # query_dat = copy.copy(query)
     # train = [x[1] for x in train]
@@ -114,8 +114,8 @@ def kmeans(train, query, metric):
         # new_centroids = np.empty([0, len(train[0])])
         check = False
         for i in range(k):
-            new_centroid = np.mean(classification[i], axis=0)
-            print('Nan:', new_centroid) if np.isnan(new_centroid[0]) else ''
+            new_centroid = np.nanmean(classification[i], axis=0)
+            # print('Nan:', new_centroid) if np.isnan(new_centroid[0]) else ''
             # print('new centroid:', new_centroid.shape)
             # print(classification[i].astype(np.int).shape)
             # convergence test
@@ -138,11 +138,11 @@ def kmeans(train, query, metric):
 
     # predict
     # -- plot centroids
-    fig, axs = plt.subplots(10)
+    fig, axs = plt.subplots(k)
     for i in range(k):
         # print('cluster', i, ':', centroids[i])
         axs[i].imshow(centroids[i].reshape(28, 28))
-    # plt.show()
+    plt.show()
     clusters = []
     for pt in query:
         min_dist = float('inf')
