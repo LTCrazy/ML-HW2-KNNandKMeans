@@ -1,4 +1,4 @@
-# KNNandKMeans
+# Classifying MNIST with KNN & K-means 
 
 This is a project that classifies hand-written digits in the famous MNIST dataset with attempts in KNN and K-means clustering methods.
 
