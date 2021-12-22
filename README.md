@@ -8,4 +8,4 @@ Complete implementation can be found in `starter.py`
 
 ## Dataset
 
-The MNIST datasets are converted into train, valid, and test set under the 3 `.csv` files
+The MNIST datasets are converted into train, valid, and test set under the three `.csv` files
